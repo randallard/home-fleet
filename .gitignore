@@ -1,0 +1,7 @@
+# Private fleet inventory — real repo names / internal (work) identifiers.
+# NEVER committed: home-fleet is a public GitHub repo, and internal repos
+# must not be named publicly.
+docs/inventory.private.md
+
+# One-shot tenx cleanup script — names an internal repo; operational, not for publication.
+scripts/tenx-cleanup.sh
