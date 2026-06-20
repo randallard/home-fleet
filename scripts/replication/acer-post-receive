@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+#
+# post-receive — install into each acer home's hooks/ (see SETUP-replication.md).
+#
+# Fires after every accepted push to this home and mirrors it to the tenx backup, so
+# "if it's on acer, it's on tenx" holds in near-real-time. It pushes ALL heads+tags
+# (not just the changed ref) so it is self-healing. The client's push to acer has
+# already succeeded by now, so a backup failure here never blocks the client — it is
+# logged and the scheduled sweep retries.
+#
+# Generic — no repo names; safe to publish.
+set -euo pipefail
+
+home="$(git rev-parse --absolute-git-dir)"
+REPLDIR="${REPLDIR:-/data/git/.replication}"
+
+# Don't fail the receiving side if the backup is momentarily unreachable; sweep catches up.
+"$REPLDIR/acer-mirror-one.sh" "$home" || true

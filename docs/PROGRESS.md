@@ -15,7 +15,8 @@ but not yet a home server; tenx-rltec is the existing, working home.
 assurance standards — provable Rust / strict TS / audited / FISMA-aligned
 ([0001](adr/0001-assurance-standards-provable-rust-strict-ts-fisma-aligned.md)) · fleet
 topology — **acer primary + controller, tenx hardened backup**
-([0002](adr/0002-fleet-topology-acer-primary-tenx-backup-controller.md)).
+([0002](adr/0002-fleet-topology-acer-primary-tenx-backup-controller.md)) · replication mechanism —
+**hook + sweep, ff-only, snapshotted** ([0003](adr/0003-replication-mechanism-hook-sweep-ff-only-snapshots.md)).
 
 ---
 
@@ -117,11 +118,17 @@ notes):
       spot-check a `git ls-remote acer-lan:/data/git/<repo>.git`.
 
 ### Phase 3 — Wire acer → tenx replication (the controller path)
-- [ ] On tenx: install the **receive-only forced-command key** for acer; deny non-ff / force.
-- [ ] On acer: `post-receive` hook that mirror-pushes the updated repo to tenx (ff-only), plus a
-      scheduled full sweep to catch anything missed; replication is **audit-logged** on acer.
-- [ ] Add tenx-side **snapshot/bundle** job (read-only history protection).
-- [ ] Verify: push to acer → lands on tenx within the hook window; lag monitoring in place.
+> Mechanism decided in **[ADR-0003](adr/0003-replication-mechanism-hook-sweep-ff-only-snapshots.md)**;
+> step-by-step in **[SETUP-replication.md](SETUP-replication.md)**; scripts in
+> [`scripts/replication/`](../scripts/replication/) (all generic/public-safe).
+
+- [ ] On tenx: install the **receive-only forced-command key** for acer (`tenx-receive-only-command.sh`),
+      and harden every home — `denyNonFastForwards` + `denyDeletes` + `pre-receive` (`tenx-harden-homes.sh --apply`).
+- [ ] On acer: `post-receive` hook (`acer-post-receive`) in each home + a **15-min sweep**
+      (`acer-sweep.sh` via systemd timer); ff-only, never-force, **audit-logged** on acer.
+- [ ] tenx-side **daily snapshots** (`tenx-snapshot.sh`, 14-deep bundles) for read-only history protection.
+- [ ] Verify: push to acer → lands on tenx within the hook window; force/shell attempts rejected;
+      snapshot bundles present. (Lag/freshness becomes the monitoring signal — PROGRESS §5.)
 
 ### Phase 4 — Cut clients over to acer
 - [ ] Repoint each client's primary remote to acer (`acer-lan`/`acer-ts`); keep tenx as a
@@ -158,9 +165,11 @@ pragmatic exception — kept small, reviewed, and audited where it mutates state
       [ADR-0009](https://github.com/randallard/git-redundancy/blob/main/docs/adr/0009-ssh-transport-aliases-mdns-hostkey-pinned.md))
       verbatim. (→ confirm the exact `sshd` algorithm set when acer is configured; a new ADR
       only if it ends up diverging.)
-- [x] **Replication mechanism** → **both.** A `post-receive` hook (fires on every accepted push,
-      near-real-time) **and** a scheduled full sweep (catches anything the hook missed). Still to
-      pin down in testing: exact ff-only enforcement on tenx + snapshot cadence/retention.
+- [x] **Replication mechanism** → **pinned in [ADR-0003](adr/0003-replication-mechanism-hook-sweep-ff-only-snapshots.md)**:
+      `post-receive` hook + 15-min sweep (both); ff-only enforced three ways on tenx (forced-command
+      + `denyNonFastForwards`/`denyDeletes` + `pre-receive`); daily 14-deep snapshot bundles; audit
+      on acer. Scripts drafted in [`scripts/replication/`](../scripts/replication/); validation
+      happens when acer is up (Phase 3).
 - [~] **Monitoring** → left open, but the **decided floor:** replication state (per-repo lag /
       "is this backed up to tenx?") surfaces in the **`gr status` table** at minimum. Anything
       richer (a dedicated checker, a `home-fleet` crate, alerting) is deferred.

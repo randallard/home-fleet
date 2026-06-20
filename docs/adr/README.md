@@ -45,3 +45,4 @@ we cite the relevant NIST 800-53 family inline.
 | [0000](0000-record-architecture-decisions.md) | Record architecture decisions (use ADRs) | Accepted |
 | [0001](0001-assurance-standards-provable-rust-strict-ts-fisma-aligned.md) | Assurance standards: provable Rust, strict TS, audited, FISMA-aligned | Accepted |
 | [0002](0002-fleet-topology-acer-primary-tenx-backup-controller.md) | Fleet topology: acer primary + replication controller, tenx hardened backup | Accepted |
+| [0003](0003-replication-mechanism-hook-sweep-ff-only-snapshots.md) | Replication mechanism: post-receive hook + sweep, ff-only, snapshotted | Accepted |
