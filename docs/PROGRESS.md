@@ -106,9 +106,15 @@ notes):
 - [ ] `/data/git` home root created; confirm reachable over LAN (mDNS) and Tailscale.
 
 ### Phase 2 — Seed acer from tenx (one-time)
-- [ ] Mirror-clone every bare home from tenx → acer (`git clone --mirror`), so acer starts as a
-      faithful copy. Verify ref-by-ref (`git ls-remote` diff) per repo.
-- [ ] Fix the known name mismatches during the seed (canonical home names).
+> Script (run **on tenx**, after Phase 1 + cleanup): **[scripts/seed-acer.sh](../scripts/seed-acer.sh)**
+> — globs `/data/git/*.git`, mirror-pushes each to acer over the FIPS alias, sets each home's
+> HEAD to match, verifies refs. Dry-run by default; **never clobbers** a divergent acer home.
+
+- [ ] Name mismatches are already resolved by the cleanup step (Phase 0), so the seed just
+      copies the clean, canonical set — no in-flight renaming needed.
+- [ ] Run `seed-acer.sh --apply` once acer is up (Phase 1) and `tenx-cleanup.sh --apply` has run.
+- [ ] Confirm the summary shows every home **seeded + verified** (ref sets identical), then
+      spot-check a `git ls-remote acer-lan:/data/git/<repo>.git`.
 
 ### Phase 3 — Wire acer → tenx replication (the controller path)
 - [ ] On tenx: install the **receive-only forced-command key** for acer; deny non-ff / force.
