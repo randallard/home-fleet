@@ -135,9 +135,16 @@ notes):
       snapshot bundles present. (Lag/freshness becomes the monitoring signal — PROGRESS §5.)
 
 ### Phase 4 — Cut clients over to acer
-- [ ] Repoint each client's primary remote to acer (`acer-lan`/`acer-ts`); keep tenx as a
-      read/restore fallback. Update each box's `gr` config (`default_remotes`, `[server]`).
-- [ ] `gr push` / `gr status` green against acer on every client.
+> Step-by-step (canary first, per client): **[SETUP-cutover.md](SETUP-cutover.md)**; remote
+> repointing via [`scripts/cutover-client.sh`](../scripts/cutover-client.sh) (generic, dry-run,
+> reversible). **Start only after Phase 3 replication is verified.**
+
+- [ ] Per client, run `cutover-client.sh --apply`: preserves the tenx targets as `tenx-lan`/`tenx`
+      (restore-only) and points `data-lan`/`data` at acer.
+- [ ] Update each box's `gr` config: `default_remotes`/`transport` → acer, `[server].aliases =
+      ["acer-lan","acer-ts"]` (also fixes tenx's `?` lifecycle column).
+- [ ] `gr push` / `gr status` green against acer on every client, and each push round-trips to
+      tenx via replication. Restore path (`tenx*` remotes) still works.
 
 ### Phase 5 — Demote tenx & harden
 - [ ] tenx stops accepting client writes (receive-only from acer); confirm no client still
