@@ -96,6 +96,8 @@ notes):
   Details in `docs/inventory.private.md`.
 
 ### Phase 1 — Stand up acer as a home server
+> Step-by-step checklist (mirrors tenx's transport verbatim): **[SETUP-acer.md](SETUP-acer.md)**.
+
 - [ ] OS/baseline on acer: **headless Arch** (Omarchy's Arch base, server profile, no desktop;
       cf. git-redundancy ADR-0008); 1 TB drive mounted at the `/data` home root; `git` ≥ 2.38.
 - [ ] FIPS-enforced `sshd` + transport, host-key pinned, SSH aliases (`acer-lan` / `acer-ts`)
