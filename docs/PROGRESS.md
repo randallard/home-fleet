@@ -6,21 +6,24 @@
 > [git-redundancy](https://github.com/randallard/git-redundancy) (the `gr` tool) — see its
 > `docs/PROGRESS.md` for the client-side backup story this fleet serves.
 
-**Status:** designed (2026-06-19). Topology + standards + fleet membership + replication
-mechanism all decided (ADRs 0000–0003). **Phase 0 (inventory) done**, and Phases 1–3 are
-fully drafted: the acer setup checklist ([SETUP-acer.md](SETUP-acer.md)), the seed script
-([seed-acer.sh](../scripts/seed-acer.sh)), and the replication scripts + wiring
-([SETUP-replication.md](SETUP-replication.md)). The `tenx-cleanup` script is dry-run-clean and
-awaiting `--apply`. **The only remaining blocker is physically standing up acer (Phase 1);**
-after that it's execution. acer-arch is racked and on Tailscale but not yet a home server;
-tenx-rltec is the existing, working home.
+**Status:** designed end-to-end (2026-06-19). All decisions recorded (ADRs 0000–0004) and
+**every phase (0–6) is planned & scripted**: Phase 0 (inventory) done; Phase 1
+([SETUP-acer.md](SETUP-acer.md)); Phase 2 ([seed-acer.sh](../scripts/seed-acer.sh)); Phase 3
+([SETUP-replication.md](SETUP-replication.md) + `scripts/replication/`); Phase 4
+([SETUP-cutover.md](SETUP-cutover.md) + [cutover-client.sh](../scripts/cutover-client.sh)); Phases
+5–6 ([SETUP-failover.md](SETUP-failover.md) + `promote-tenx.sh`/`fleet-healthcheck.sh`). The
+`tenx-cleanup` script is dry-run-clean and awaiting `--apply`. **The only remaining blocker is
+physically standing up acer (Phase 1);** after that it's execution. acer-arch is racked and on
+Tailscale but not yet a home server; tenx-rltec is the existing, working home.
 
 **Decisions locked (see ADRs):** use ADRs ([0000](adr/0000-record-architecture-decisions.md)) ·
 assurance standards — provable Rust / strict TS / audited / FISMA-aligned
 ([0001](adr/0001-assurance-standards-provable-rust-strict-ts-fisma-aligned.md)) · fleet
 topology — **acer primary + controller, tenx hardened backup**
 ([0002](adr/0002-fleet-topology-acer-primary-tenx-backup-controller.md)) · replication mechanism —
-**hook + sweep, ff-only, snapshotted** ([0003](adr/0003-replication-mechanism-hook-sweep-ff-only-snapshots.md)).
+**hook + sweep, ff-only, snapshotted** ([0003](adr/0003-replication-mechanism-hook-sweep-ff-only-snapshots.md)) ·
+failover/recovery/monitoring — **manual promotion, recovery via the migration scripts, healthcheck floor**
+([0004](adr/0004-failover-recovery-and-monitoring.md)).
 
 ---
 
@@ -147,13 +150,22 @@ notes):
       tenx via replication. Restore path (`tenx*` remotes) still works.
 
 ### Phase 5 — Demote tenx & harden
-- [ ] tenx stops accepting client writes (receive-only from acer); confirm no client still
-      writes to it directly.
-- [ ] Document restore drill: acer down → repoint clients to tenx, promote tenx, rebuild acer.
+> Runbook: **[SETUP-failover.md](SETUP-failover.md)** (Phase 5 section); decisions in
+> **[ADR-0004](adr/0004-failover-recovery-and-monitoring.md)**.
+
+- [ ] Confirm no client writes to tenx directly (every `data*` points at acer; tenx kept only as
+      a `tenx*` restore remote). Integrity already enforced by Phase 3 hardening.
+- [ ] `tenx-snapshot.timer` active and bundles fresh (`fleet-healthcheck.sh`).
 
 ### Phase 6 — Verify & drill
-- [ ] **Contingency drill (CP):** simulate acer loss, restore from tenx end-to-end, measure.
-- [ ] Replication-lag + snapshot-freshness monitoring alerting.
+> Drill + monitoring: **[SETUP-failover.md](SETUP-failover.md)** (Phase 6); scripts
+> [`promote-tenx.sh`](../scripts/promote-tenx.sh) + [`fleet-healthcheck.sh`](../scripts/fleet-healthcheck.sh).
+
+- [ ] **Contingency drill (CP), run regularly:** simulate acer loss → `promote-tenx.sh` (clients →
+      tenx) → verify zero committed-work loss → rebuild acer by re-running the migration scripts
+      (`SETUP-acer` ▸ `seed-acer` ▸ `SETUP-replication` ▸ `cutover-client`) → measure RTO.
+- [ ] **Monitoring floor:** `fleet-healthcheck.sh` on a timer (replication lag + snapshot
+      freshness, exit-code alerting); later surface the same signal in `gr status` (§5).
 
 ---
 
@@ -181,9 +193,11 @@ pragmatic exception — kept small, reviewed, and audited where it mutates state
       + `denyNonFastForwards`/`denyDeletes` + `pre-receive`); daily 14-deep snapshot bundles; audit
       on acer. Scripts drafted in [`scripts/replication/`](../scripts/replication/); validation
       happens when acer is up (Phase 3).
-- [~] **Monitoring** → left open, but the **decided floor:** replication state (per-repo lag /
-      "is this backed up to tenx?") surfaces in the **`gr status` table** at minimum. Anything
-      richer (a dedicated checker, a `home-fleet` crate, alerting) is deferred.
+- [~] **Monitoring** → floor decided + drafted in
+      [ADR-0004](adr/0004-failover-recovery-and-monitoring.md): `fleet-healthcheck.sh` (replication
+      lag + snapshot freshness, exit-code alerting on a timer). Still deferred: surfacing the same
+      per-repo "backed up? how stale?" signal in the **`gr status` table**, and anything richer
+      (push alerting, dashboard).
 - [ ] **Off-site tier** — a third, off-site copy later (encrypted bundles to cloud)? Out of
       scope for this migration; note as a future ADR.
 - [x] ~~**omarchy-setup publication**~~ → resolved: https://github.com/randallard/omarchy-setup
