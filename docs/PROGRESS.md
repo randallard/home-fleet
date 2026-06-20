@@ -193,11 +193,11 @@ pragmatic exception — kept small, reviewed, and audited where it mutates state
       + `denyNonFastForwards`/`denyDeletes` + `pre-receive`); daily 14-deep snapshot bundles; audit
       on acer. Scripts drafted in [`scripts/replication/`](../scripts/replication/); validation
       happens when acer is up (Phase 3).
-- [~] **Monitoring** → floor decided + drafted in
-      [ADR-0004](adr/0004-failover-recovery-and-monitoring.md): `fleet-healthcheck.sh` (replication
-      lag + snapshot freshness, exit-code alerting on a timer). Still deferred: surfacing the same
-      per-repo "backed up? how stale?" signal in the **`gr status` table**, and anything richer
-      (push alerting, dashboard).
+- [x] **Monitoring** → floor in place. **`gr status` now shows a `Bkp` column** — per-repo backup
+      *presence* (`ok`/`miss`/`?`) via a `[backup]` server block (git-redundancy ADR-0015). The
+      deeper signal — replication **lag** + **snapshot freshness** — stays in `fleet-healthcheck.sh`
+      on tenx (it can see the filesystem; a client can't honestly observe it). Still deferred:
+      richer alerting (push/dashboard).
 - [ ] **Off-site tier** — a third, off-site copy later (encrypted bundles to cloud)? Out of
       scope for this migration; note as a future ADR.
 - [x] ~~**omarchy-setup publication**~~ → resolved: https://github.com/randallard/omarchy-setup

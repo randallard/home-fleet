@@ -71,9 +71,11 @@ that tenx is missing) and **stale snapshots** (newest bundle older than `SNAP_MA
   WantedBy=timers.target
   ```
 
-This exit-code signal is the seam for the deferred work: surface the same per-repo "backed up?
-how stale?" state in the **`gr status` table** (PROGRESS §5). Richer alerting (push/dashboard)
-stays out of scope.
+**Backup presence is also in `gr status`.** With a `[backup]` block configured (aliases →
+tenx), `gr status` shows a `Bkp` column — `ok`/`miss`/`?` per repo (git-redundancy ADR-0015).
+That covers the "is each repo *on* the backup?" question at a glance; `fleet-healthcheck.sh`
+here covers the deeper "how far behind / how stale?" that a client can't observe. Richer
+alerting (push/dashboard) stays out of scope.
 
 ---
 

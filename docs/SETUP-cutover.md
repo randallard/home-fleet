@@ -49,6 +49,10 @@ order = ["data-lan", "data"]                # LAN first, Tailscale fallback
 [server]
 root = "/data/git"
 aliases = ["acer-lan", "acer-ts"]           # was tenx (or local on tenx); now acer
+
+[backup]                                    # the backup home — drives the `Bkp` column
+root = "/data/git"
+aliases = ["tenx-lan", "tenx"]              # is each repo mirrored to tenx too? (ADR-0015)
 ```
 > On **tenx**, this also fixes the `?` lifecycle column we had under the local-only config —
 > with `aliases = ["acer-lan","acer-ts"]`, gr reaches a server over SSH and the column
