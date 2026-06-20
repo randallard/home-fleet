@@ -6,10 +6,14 @@
 > [git-redundancy](https://github.com/randallard/git-redundancy) (the `gr` tool) — see its
 > `docs/PROGRESS.md` for the client-side backup story this fleet serves.
 
-**Status:** planning (2026-06-19). Topology + standards + fleet membership decided;
-**Phase 0 (inventory) done**; a conservative `tenx-cleanup` script is drafted and dry-run-clean
-(awaiting `--apply`). **Phase 1 (stand up acer) is next.** acer-arch is racked and on Tailscale
-but not yet a home server; tenx-rltec is the existing, working home.
+**Status:** designed (2026-06-19). Topology + standards + fleet membership + replication
+mechanism all decided (ADRs 0000–0003). **Phase 0 (inventory) done**, and Phases 1–3 are
+fully drafted: the acer setup checklist ([SETUP-acer.md](SETUP-acer.md)), the seed script
+([seed-acer.sh](../scripts/seed-acer.sh)), and the replication scripts + wiring
+([SETUP-replication.md](SETUP-replication.md)). The `tenx-cleanup` script is dry-run-clean and
+awaiting `--apply`. **The only remaining blocker is physically standing up acer (Phase 1);**
+after that it's execution. acer-arch is racked and on Tailscale but not yet a home server;
+tenx-rltec is the existing, working home.
 
 **Decisions locked (see ADRs):** use ADRs ([0000](adr/0000-record-architecture-decisions.md)) ·
 assurance standards — provable Rust / strict TS / audited / FISMA-aligned

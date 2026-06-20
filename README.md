@@ -5,7 +5,7 @@ bare "home" remotes, how they replicate for redundancy, and the decisions behind
 This repo is the *map and logbook* for the construction; the tooling that operates the fleet
 lives in companion projects.
 
-> Status: planning (Phase 0 done; standing up acer next). Standing up a second home server (**acer-arch**, 1 TB) as the new
+> Status: designed (Phases 0–3 planned & scripted; physically standing up acer is the next step). Standing up a second home server (**acer-arch**, 1 TB) as the new
 > **primary** home remote, with the existing server (**tenx-rltec**) demoted to a hardened
 > **backup** — so every repo lives on two independent boxes. See
 > [docs/PROGRESS.md](docs/PROGRESS.md) for the plan and current state.
